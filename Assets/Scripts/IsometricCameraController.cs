@@ -57,8 +57,9 @@ public class IsometricCameraController : MonoBehaviour
 
         Vector3 rightMovement;
         Vector3 upMovement;
-        //Vector3 movementNormalized;
 
+
+        //Vector3 movementNormalized;
         //Debug.Log("Right: " + right);
         //Debug.Log("Forward: " + forward);
         //Debug.Log(Input.GetAxisRaw("Horizontal"));
