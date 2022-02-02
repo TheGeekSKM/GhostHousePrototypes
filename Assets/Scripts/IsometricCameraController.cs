@@ -8,9 +8,15 @@ public class IsometricCameraController : MonoBehaviour
 
     [Header("Camera Connections")]
     [SerializeField] Camera _mainCamera;
+    [SerializeField] Rigidbody _rigidbody;
 
-    [Header("Camera Values")]
+    [Header("Traditional Camera Movement Values")]
     [SerializeField] private float _cameraMoveSpeed = 10f;
+
+    [Header("Rigidbody/Sliding Camera Movement Values")]
+    [SerializeField] private bool _enableSlidingMovement = false;
+
+    [Header("Camera Zoom Values")]
     [SerializeField] private float _cameraZoomSpeed = 5f;
     [SerializeField] private float _maxZoomInValue = 0.7f;
     [SerializeField] private float _maxZoomOutValue = 6.37f;
@@ -27,15 +33,20 @@ public class IsometricCameraController : MonoBehaviour
         if (_mainCamera != null)
         {
             forward = _mainCamera.transform.forward;
+            right = _mainCamera.transform.right;
         }
         else
         {
             forward = Camera.main.transform.forward;
+            right = Camera.main.transform.right;
         }
+
+       
         forward.y = 0f;
         forward = Vector3.Normalize(forward);
+        right = Vector3.Normalize(right);
 
-        right = Quaternion.Euler(new Vector3(0, 90, 0)) * forward;
+
     }
 
     void HandleInput()
@@ -46,18 +57,27 @@ public class IsometricCameraController : MonoBehaviour
 
         Vector3 rightMovement;
         Vector3 upMovement;
+        //Vector3 movementNormalized;
 
+        //Debug.Log("Right: " + right);
+        //Debug.Log("Forward: " + forward);
+        //Debug.Log(Input.GetAxisRaw("Horizontal"));
+        //Debug.Log(Input.GetAxisRaw("Horizontal"));
 
         //I also added a sprint mechanic which i hate calling it a "mechanic" cuz it's literally just changing a float value.
         if (_enableSprintSpeed && Input.GetKey(KeyCode.LeftShift))
         {
             rightMovement = right * _cameraSprintSpeed * Time.deltaTime * Input.GetAxisRaw("Horizontal");
             upMovement = forward * _cameraSprintSpeed * Time.deltaTime * Input.GetAxisRaw("Vertical");
+
+            //movementNormalized = (rightMovement + upMovement).normalized;
         }
         else
         {
             rightMovement = right * _cameraMoveSpeed * Time.deltaTime * Input.GetAxisRaw("Horizontal");
             upMovement = forward * _cameraMoveSpeed * Time.deltaTime * Input.GetAxisRaw("Vertical");
+
+            //movementNormalized = (rightMovement + upMovement).normalized;
         }
 
         if (_mainCamera != null)
@@ -89,12 +109,20 @@ public class IsometricCameraController : MonoBehaviour
         }
 
         //This is where movement gets calculated.
+        if (!_enableSlidingMovement)
+        {
 
-        transform.position += rightMovement;
-        //Debug.Log(rightMovement);
+            transform.position += rightMovement;
+            //Debug.Log(rightMovement);
 
-        transform.position += upMovement;
-        //Debug.Log(upMovement);
+            transform.position += upMovement;
+            //Debug.Log(upMovement);
+
+            //Debug.Log(movementNormalized);
+            //transform.position += movementNormalized;
+        }
+       
+
 
     }
 
@@ -102,5 +130,37 @@ public class IsometricCameraController : MonoBehaviour
     private void Update()
     {
         HandleInput();
+    }
+
+    private void FixedUpdate()
+    {
+        Vector3 rightMovement;
+        Vector3 upMovement;
+
+        if (_enableSprintSpeed && Input.GetKey(KeyCode.LeftShift))
+        {
+            rightMovement = right * _cameraSprintSpeed * Time.deltaTime * Input.GetAxisRaw("Horizontal");
+            upMovement = forward * _cameraSprintSpeed * Time.deltaTime * Input.GetAxisRaw("Vertical");
+
+            //movementNormalized = (rightMovement + upMovement).normalized;
+        }
+        else
+        {
+            rightMovement = right * _cameraMoveSpeed * Time.deltaTime * Input.GetAxisRaw("Horizontal");
+            upMovement = forward * _cameraMoveSpeed * Time.deltaTime * Input.GetAxisRaw("Vertical");
+
+            //movementNormalized = (rightMovement + upMovement).normalized;
+        }
+
+        if (_enableSlidingMovement)
+        {
+             
+            if (_rigidbody != null)
+            {
+                _rigidbody.AddForce(rightMovement * 3f, ForceMode.Impulse);
+                _rigidbody.AddForce(upMovement * 3f, ForceMode.Impulse);
+            }
+            
+        }
     }
 }
